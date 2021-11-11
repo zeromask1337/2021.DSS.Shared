@@ -2,7 +2,10 @@ package cos418_hw1_1
 
 import (
 	"fmt"
+	"io/ioutil"
+	"regexp"
 	"sort"
+	"strings"
 )
 
 // Find the top K most common words in a text document.
@@ -14,14 +17,36 @@ import (
 // A word comprises alphanumeric characters only. All punctuations and other characters
 // are removed, e.g. "don't" becomes "dont".
 // You should use `checkError` to handle potential errors.
-func topWords(path string, numWords int, charThreshold int) []WordCount {
-	// TODO: implement me
-	// HINT: You may find the `strings.Fields` and `strings.ToLower` functions helpful
-	// HINT: To keep only alphanumeric characters, use the regex "[^0-9a-zA-Z]+"
-	return nil
+func topWords(pathString string, numWords int, charThreshold int) []WordCount {
+	text, _ := ioutil.ReadFile(pathString)
+	text_str := string(text)
+	text_lower := strings.ToLower(text_str)
+	var punctuation = regexp.MustCompile(`[[:punct:]]`)
+	text_del_punct := punctuation.ReplaceAllString(text_lower, "")
+	text_arr := strings.Fields(text_del_punct)
+
+	counts := make(map[string]int)
+	for _, word := range text_arr {
+		if len(word) >= charThreshold {
+			_, ok := counts[word]
+			if ok {
+				counts[word] += 1
+			} else {
+				counts[word] = 1
+			}
+		}
+
+	}
+	structedCount := make([]WordCount, 0)
+	for key, value := range counts {
+		structedCount = append(structedCount, WordCount{key, value})
+	}
+	sortWordCounts(structedCount)
+
+	return structedCount[:numWords]
 }
 
-// A struct that represents how many times a word is observed in a document
+//WordCount is a struct that represents how many times a word is observed in a document
 type WordCount struct {
 	Word  string
 	Count int
